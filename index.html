@@ -11,8 +11,6 @@
   <script src="https://unpkg.com/tone@14.8.49/build/Tone.js"></script>
 
   <!-- 自訂樣式（放在 Tailwind 後面） -->
-
-
   <style>
     /* ===== 導覽列（兩顆按鈕）—外觀與不外凸 ===== */
     nav.nav-bar{
@@ -117,11 +115,12 @@
       background: transparent;
     }
   </style>
-    <style>
+
+  <style>
 /* 統一把練習題的字變小一號（直式與橫式都蓋） */
 #question-box > p,
 #question-box > div{
-  font-size: clamp(28px, 6vw, 44px) !important; /* 你也可以改成 26px / 5.5vw / 40px 等 */
+  font-size: clamp(28px, 6vw, 44px) !important;
 }
 
 /* 手機再小一點（可選） */
@@ -131,7 +130,8 @@
     font-size: 32px !important;
   }
 }
-  /* 手機：把「題目回顧」整個框加寬（不影響其他區塊） */
+
+/* 手機：把「題目回顧」整個框加寬（不影響其他區塊） */
 @media (max-width: 480px){
   #practice-result .bg-white.rounded-xl.shadow-lg{
     max-width: 100% !important;  /* 蓋掉 max-w-xl */
@@ -146,9 +146,13 @@
   /* 保險：避免任何水平捲動 */
   html, body{ overflow-x: hidden; }
 }
-    </style>
 
-
+/* ✅ 再玩一次 按鈕字體調小（保證生效） */
+#btn-retry{ font-size:16px !important; line-height:1.2 }
+@media (max-width:480px){
+  #btn-retry{ font-size:15px !important; padding:10px 16px !important; white-space:nowrap }
+}
+  </style>
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-pink-100 to-blue-100 flex flex-col items-center justify-start p-4">
@@ -174,7 +178,6 @@
       <div class="overflow-x-auto">
         <table id="addition-table" class="text-sm sm:text-base md:text-lg"></table>
       </div>
-  
     </section>
 
     <!-- Practice Page -->
@@ -260,7 +263,7 @@
             重新選擇練習 🔄
           </button>
           <button id="btn-retry"
-            class="px-8 py-4 rounded-full text-2xl font-bold bg-purple-500 text-white hover:bg-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
+            class="px-8 py-4 rounded-full text-xl font-bold bg-purple-500 text-white hover:bg-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
             再玩一次！
           </button>
         </div>
@@ -579,9 +582,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
