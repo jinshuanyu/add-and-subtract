@@ -3,144 +3,130 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>加法表 & 加減法練習｜HTML5 版</title>
+  <title>加法表 & 加減法練習</title>
 
-  <!-- Tailwind (Play CDN) + safelist for動態切換的 class -->
-  <script>
-    window.tailwind = {};
-    tailwind.config = {
-      safelist: [
-        // nav toggles
-        'bg-purple-500','text-white','shadow-md','bg-purple-200','text-purple-800','hover:bg-purple-300',
-        'bg-green-500','bg-green-200','text-green-800','hover:bg-green-300',
-        // learning table highlights
-        'bg-yellow-100','bg-yellow-300',
-        // mode buttons (selected/unselected)
-        'bg-indigo-500','ring-4','ring-indigo-300','bg-indigo-200','text-indigo-800','hover:bg-indigo-300',
-        'bg-rose-500','ring-rose-300','bg-rose-200','text-rose-800','hover:bg-rose-300',
-        'bg-amber-500','ring-amber-300','bg-amber-200','text-amber-800','hover:bg-amber-300',
-        'bg-cyan-500','ring-cyan-300','bg-cyan-200','text-cyan-800','hover:bg-cyan-300',
-        'bg-teal-500','ring-teal-300','bg-teal-200','text-teal-800','hover:bg-teal-300',
-        // options state
-        'bg-indigo-300','text-indigo-900','hover:bg-indigo-400','opacity-50','cursor-not-allowed',
-        'bg-green-500','bg-red-500','scale-110','scale-105','shadow-lg',
-        // result styling
-        'bg-teal-50','text-teal-600','animate-bounce',
-        // borders
-        'border-yellow-800'
-      ]
-    }
-  </script>
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-<style>
-/* === 兩顆導覽按鈕（學習／練習）—外觀與手機縮小 === */
-#btn-learning,
-#btn-practice{
-  font-weight: 900;
-  letter-spacing: .2px;
-  border: 1px solid rgba(0,0,0,.06);
-  border-radius: 9999px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
-  transition: transform .14s ease, box-shadow .14s ease;
-}
-#btn-learning:hover,
-#btn-practice:hover{ transform: translateY(-1px) }
-#btn-learning:active,
-#btn-practice:active{ transform: translateY(0) scale(.98) }
-
-
-
-/* === 加法表邊界（更貼邊、邊框一致、手機字體別太大） === */
-#addition-table{
-  border-collapse: collapse !important;
-  border: 1px solid #bfdbfe !important; /* 和原本藍邊一致 */
-  border-radius: 6px !important;
-  box-shadow: 0 6px 16px rgba(30,64,175,.08);
-}
-#addition-table th,
-#addition-table td{
-  padding: 8px 8px;
-  white-space: nowrap;
-  text-align: center;
-  border-bottom: 1px solid #bfdbfe;
-}
-
-/* 手機：表格更貼螢幕邊、字體再小一點、cell 更緊湊 */
-@media (max-width: 480px){
-  #page-learning .overflow-x-auto{
-    margin-left: -10px;
-    margin-right: -10px;
-    padding: 0 4px;       /* 幾乎貼齊螢幕 */
-  }
-  #addition-table{
-    font-size: 14px !important;
-  }
-  #addition-table th,
-  #addition-table td{
-    padding: 6px 6px;
-  }
-}
-</style>
-<style>
-/* 手機：把 nav 鎖在視窗寬度內並置中，不會溢出到左邊 */
-@media (max-width: 480px){
-  nav{
-    /* 讓 nav 寬度 = 螢幕寬度 - 24px 邊距；並置中 */
-    width: calc(100vw - 24px);
-    max-width: calc(100vw - 24px);
-    margin: 0 auto 16px;
-    padding: 10px 12px;               /* 內距小一點 */
-    box-sizing: border-box;
-    border-radius: 16px;
-
-    /* 兩顆按鈕固定同一行 */
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  /* 兩顆按鈕各佔一半、縮小字與內距 */
-  #btn-learning,
-  #btn-practice{
-    width: 100%;
-    font-size: 16px !important;
-    line-height: 1.2;
-    padding: 10px 12px !important;
-  }
-
-  /* 保險：整頁不允許水平捲動（避免其他元素造成的 1~2px 漂移） */
-  html, body{ overflow-x: hidden; }
-}
-</style>
-
   <!-- Tone.js -->
   <script src="https://unpkg.com/tone@14.8.49/build/Tone.js"></script>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-pink-100 to-blue-100 flex flex-col items-center justify-center p-4 font-inter">
 
-  <!-- NAV（手機：字級/內距縮小 + 單行、不捲動） -->
-  <nav class="mb-6 p-2 bg-white rounded-2xl shadow-lg">
-    <div class="flex flex-nowrap justify-center items-center gap-2 sm:gap-4">
+  <!-- 自訂樣式（放在 Tailwind 後面） -->
+  <style>
+    /* ===== 導覽列（兩顆按鈕）—外觀與不外凸 ===== */
+    nav.nav-bar{
+      width: 100%;
+      max-width: 720px;               /* 桌機收斂寬度 */
+      margin: 0 auto 16px;            /* 置中 */
+      padding: 12px 16px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+      box-sizing: border-box;
+    }
+    /* pill 按鈕共同樣式（描邊 + 微陰影） */
+    #btn-learning, #btn-practice{
+      border: 1px solid rgba(0,0,0,.06);
+      border-radius: 9999px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.06), inset 0 -2px 0 rgba(0,0,0,.03);
+      font-weight: 900;
+      letter-spacing: .2px;
+      transition: transform .14s ease, box-shadow .14s ease, background-color .14s ease, color .14s ease;
+    }
+    #btn-learning:hover, #btn-practice:hover{ transform: translateY(-1px) }
+    #btn-learning:active, #btn-practice:active{ transform: translateY(0) scale(.98) }
+
+    /* 手機：兩顆固定同一行、不捲動；避免放大造成外溢 */
+    @media (max-width: 480px){
+      nav.nav-bar{
+        padding: 10px 12px;
+        overflow: hidden;                       /* 夾住內部溢出 */
+      }
+      .nav-inner{
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      #btn-learning, #btn-practice{
+        width: 100%;
+        font-size: 16px !important;
+        line-height: 1.2;
+        padding: 10px 12px !important;
+        transform: none !important;             /* 覆蓋 hover:scale-105 */
+      }
+      html, body{ overflow-x: hidden; }         /* 保險：禁水平捲動 */
+    }
+
+    /* ====== 加法表（邊界與字級） ====== */
+    #addition-table{
+      width: 100%;
+      border-collapse: collapse !important;
+      border: 1px solid #bfdbfe !important;     /* blue-200 */
+      border-radius: 6px !important;
+      background: #eff6ff;                      /* blue-50 */
+      box-shadow: 0 8px 20px rgba(30,64,175,.06);
+      table-layout: fixed;
+      font-size: clamp(14px, 3.4vw, 18px);      /* 手機略小、桌機正常 */
+    }
+    #addition-table th, #addition-table td{
+      padding: 8px 8px;
+      border-bottom: 1px solid #bfdbfe;
+      text-align: center; white-space: nowrap;
+    }
+    #addition-table thead th{ background:#dbeafe; color:#1e40af; font-weight:800 } /* blue-100/800 */
+    /* 第一欄固定 */
+    #addition-table td:first-child{
+      position: sticky; left: 0;
+      background: #eaf2ff; color:#1d4ed8; font-weight:800;
+    }
+    /* 手機：表格更貼邊、字更小、格更緊湊 */
+    @media (max-width: 480px){
+      #page-learning .overflow-x-auto{
+        margin-left: -10px; margin-right: -10px; padding: 0 4px;
+      }
+      #addition-table{ font-size: 14px !important; }
+      #addition-table th, #addition-table td{ padding: 6px 6px; }
+    }
+
+    /* ===== 版權 ===== */
+    .site-footer{
+      width: 100%;
+      max-width: 720px;
+      box-sizing: border-box;
+      margin: 20px auto 0;
+      padding: 14px 12px;
+      text-align: center;
+      color: #6b7280;               /* slate-500 */
+      font-size: 13.5px;
+      border-top: 1px solid #e5e7eb;
+      background: transparent;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-pink-100 to-blue-100 flex flex-col items-center justify-start p-4">
+  <!-- NAV -->
+  <nav class="nav-bar">
+    <div class="nav-inner flex flex-nowrap justify-center items-center gap-3 sm:gap-4">
       <button id="btn-learning"
-        class="px-3 py-2 sm:px-6 sm:py-3 rounded-full text-[14px] leading-tight sm:text-lg font-bold whitespace-nowrap transition-all duration-300 hover:scale-105 bg-purple-500 text-white shadow-md">
+        class="px-4 py-2 sm:px-6 sm:py-3 rounded-full text-base sm:text-lg font-bold bg-purple-500 text-white shadow-md">
         ➕ 學習加法
       </button>
       <button id="btn-practice"
-        class="px-3 py-2 sm:px-6 sm:py-3 rounded-full text-[14px] leading-tight sm:text-lg font-bold whitespace-nowrap transition-all duration-300 hover:scale-105 bg-green-200 text-green-800 hover:bg-green-300">
+        class="px-4 py-2 sm:px-6 sm:py-3 rounded-full text-base sm:text-lg font-bold bg-green-200 text-green-800 hover:bg-green-300">
         📝 練習挑戰
       </button>
     </div>
   </nav>
 
   <!-- MAIN -->
-  <main class="w-full max-w-4xl p-2 md:p-4 transform transition-transform duration-500 ease-out">
-    <!-- Learning Addition Page -->
+  <main class="w-full max-w-4xl p-2 md:p-4">
+    <!-- Learning Page -->
     <section id="page-learning" class="text-center">
-      <h1 class="text-4xl md:text-5xl font-extrabold text-blue-600 mb-8 drop-shadow-md">加法表 💖</h1>
+      <h1 class="text-4xl md:text-5xl font-extrabold text-blue-600 mb-6 drop-shadow-md">加法表 💖</h1>
       <div class="overflow-x-auto">
-        <table id="addition-table" class="w-full bg-blue-50 border border-blue-200 rounded-xl shadow-lg text-sm sm:text-base md:text-lg"></table>
+        <table id="addition-table" class="text-sm sm:text-base md:text-lg"></table>
       </div>
-      <p class="mt-8 text-gray-600 text-lg">這個表格可以幫助你快速學習加法！</p>
+      <p class="mt-6 text-gray-600 text-lg">這個表格可以幫助你快速學習加法！</p>
     </section>
 
     <!-- Practice Page -->
@@ -234,30 +220,28 @@
     </section>
   </main>
 
+  <!-- 版權 -->
+  <footer class="site-footer">© 2025 你的名稱（Your Name）。保留所有權利。</footer>
+
+  <!-- 行為腳本 -->
   <script>
     // ---------- Global state ----------
-    let currentPage = 'learning';   // 'learning' | 'practice'
+    let currentPage = 'learning';
     let selectedMode = null;
     let score = 0;
-    let qIndex = 0;                 // 0..9
-    let currentQuestion = null;     // { num1, num2, operator, answer }
+    let qIndex = 0;
+    let currentQuestion = null;
     let options = [];
     let questionHistory = [];
     let selectedAnswer = null;
     let isCorrectAnswer = null;
 
-    // Tone synth
     const synth = new Tone.Synth().toDestination();
     async function initializeAudioContext() {
       if (Tone.context.state !== 'running') await Tone.start();
     }
 
-    // ---------- Helpers ----------
     const byId = (id) => document.getElementById(id);
-    function show(el) { el.classList.remove('hidden'); }
-    function hide(el) { el.classList.add('hidden'); }
-
-    // ---------- Page switching ----------
     const btnLearning = byId('btn-learning');
     const btnPractice = byId('btn-practice');
     const pageLearning = byId('page-learning');
@@ -280,34 +264,34 @@
     btnLearning.addEventListener('click', async () => {
       await initializeAudioContext();
       currentPage = 'learning';
-      show(pageLearning); hide(pagePractice);
+      pageLearning.classList.remove('hidden');
+      pagePractice.classList.add('hidden');
       setNavStyles();
     });
 
     btnPractice.addEventListener('click', async () => {
       await initializeAudioContext();
       currentPage = 'practice';
-      hide(pageLearning); show(pagePractice);
+      pageLearning.classList.add('hidden');
+      pagePractice.classList.remove('hidden');
       setNavStyles();
     });
 
-    // ---------- Build addition table with hover highlight ----------
+    // ---- Addition table ----
     function buildAdditionTable(n = 10) {
       const tbl = byId('addition-table');
       tbl.innerHTML = '';
 
       const thead = document.createElement('thead');
       const trh = document.createElement('tr');
-      trh.className = 'bg-blue-200 text-blue-800';
+      trh.className = '';
 
       const th0 = document.createElement('th');
-      th0.className = 'py-1 px-1 border-b border-blue-200 font-bold rounded-none';
       th0.textContent = '+';
       trh.appendChild(th0);
 
       for (let c = 1; c <= n; c++) {
         const th = document.createElement('th');
-        th.className = 'py-1 px-1 border-b border-blue-200 font-bold rounded-none';
         th.textContent = c;
         th.dataset.col = c;
         trh.appendChild(th);
@@ -315,20 +299,15 @@
       thead.appendChild(trh);
 
       const tbody = document.createElement('tbody');
-
       for (let r = 1; r <= n; r++) {
         const tr = document.createElement('tr');
-        tr.className = 'transition-colors duration-200';
-
         const tdRow = document.createElement('td');
-        tdRow.className = 'py-1 px-1 border-b border-blue-200 text-blue-700 font-bold bg-blue-100';
         tdRow.textContent = r;
         tdRow.dataset.rowHeader = r;
         tr.appendChild(tdRow);
 
         for (let c = 1; c <= n; c++) {
           const td = document.createElement('td');
-          td.className = 'py-1 px-1 border-b border-blue-200 text-gray-700';
           td.textContent = r + c;
           td.dataset.row = r;
           td.dataset.col = c;
@@ -336,47 +315,41 @@
         }
         tbody.appendChild(tr);
       }
-
       tbl.appendChild(thead);
       tbl.appendChild(tbody);
 
-      // Hover handling
+      // Hover highlight
       tbl.addEventListener('mouseover', (e) => {
         const cell = e.target.closest('td');
         if (!cell || !cell.dataset.row) return;
         const r = Number(cell.dataset.row);
         const c = Number(cell.dataset.col);
-
         tbl.querySelectorAll(`[data-row-header="${r}"]`).forEach(el => el.classList.add('bg-yellow-300'));
         tbl.querySelectorAll(`th[data-col="${c}"]`).forEach(el => el.classList.add('bg-yellow-300'));
         tbl.querySelectorAll(`td[data-row="${r}"], td[data-col="${c}"]`).forEach(el => el.classList.add('bg-yellow-100'));
       });
-
       tbl.addEventListener('mouseout', () => {
         tbl.querySelectorAll('.bg-yellow-100').forEach(el => el.classList.remove('bg-yellow-100'));
         tbl.querySelectorAll('.bg-yellow-300').forEach(el => el.classList.remove('bg-yellow-300'));
       });
     }
 
-    // ---------- Practice logic ----------
+    // ---- Practice logic ----
     const practiceSelect = byId('practice-select');
     const practicePlay = byId('practice-play');
     const practiceResult = byId('practice-result');
-
     const modeButtons = document.querySelectorAll('.mode-btn');
     const btnStart = byId('btn-start');
 
     modeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        // clear chosen styles
         modeButtons.forEach(b => {
-          b.classList.remove('bg-indigo-500','text-white','ring-4','ring-indigo-300');
-          b.classList.remove('bg-rose-500','text-white','ring-4','ring-rose-300');
-          b.classList.remove('bg-amber-500','text-white','ring-4','ring-amber-300');
-          b.classList.remove('bg-cyan-500','text-white','ring-4','ring-cyan-300');
-          b.classList.remove('bg-teal-500','text-white','ring-4','ring-teal-300');
+          b.classList.remove('bg-indigo-500','text-white','ring-4','ring-indigo-300',
+                             'bg-rose-500','ring-rose-300',
+                             'bg-amber-500','ring-amber-300',
+                             'bg-cyan-500','ring-cyan-300',
+                             'bg-teal-500','ring-teal-300');
         });
-
         selectedMode = btn.dataset.mode;
         if (selectedMode === 'addition18') btn.classList.add('bg-indigo-500','text-white','ring-4','ring-indigo-300');
         if (selectedMode === 'subtraction18') btn.classList.add('bg-rose-500','text-white','ring-4','ring-rose-300');
@@ -393,7 +366,6 @@
     btnStart.addEventListener('click', () => startRound());
 
     function updatePracticeTitle() {
-      const title = byId('practice-title');
       const map = {
         addition18: '18以內加法練習 ✨',
         subtraction18: '18以內減法練習 ✨',
@@ -401,292 +373,158 @@
         twoDigitSubtraction: '二位數減法練習 ✨',
         mixed: '綜合加減法練習 ✨'
       };
-      title.textContent = map[selectedMode] || '加減法練習 ✨';
+      byId('practice-title').textContent = map[selectedMode] || '加減法練習 ✨';
     }
 
-    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-    async function playCorrect() {
-      if (Tone.context.state === 'running') {
-        synth.triggerAttackRelease("C5", "8n");
-        await delay(100);
-        synth.triggerAttackRelease("G5", "8n");
-        await delay(200);
-        synth.triggerAttackRelease("C5", "8n");
-        await delay(100);
-        synth.triggerAttackRelease("G5", "8n");
+    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+    async function playCorrect(){
+      if (Tone.context.state === 'running'){
+        synth.triggerAttackRelease("C5","8n"); await delay(100);
+        synth.triggerAttackRelease("G5","8n"); await delay(200);
+        synth.triggerAttackRelease("C5","8n"); await delay(100);
+        synth.triggerAttackRelease("G5","8n");
       }
     }
-    async function playIncorrect() {
-      if (Tone.context.state === 'running') {
-        synth.triggerAttackRelease("F4", "8n");
-        await delay(250);
-        synth.triggerAttackRelease("C4", "8n");
+    async function playIncorrect(){
+      if (Tone.context.state === 'running'){
+        synth.triggerAttackRelease("F4","8n"); await delay(250);
+        synth.triggerAttackRelease("C4","8n");
       }
     }
 
-    function getRandomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+    function getRandomInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
-    function makeQuestion(mode) {
+    function makeQuestion(mode){
       let num1, num2, operator, answer;
-
-      if (mode === 'addition18') {
-        num1 = getRandomInt(1, 9);
-        num2 = getRandomInt(1, 9);
-        operator = '+';
-        answer = num1 + num2;
-      } else if (mode === 'subtraction18') {
-        num1 = getRandomInt(1, 18);
-        num2 = getRandomInt(1, num1);
-        operator = '-';
-        answer = num1 - num2;
-      } else if (mode === 'twoDigitAddition') {
-        num1 = getRandomInt(10, 99);
-        num2 = getRandomInt(10, 99);
-        operator = '+';
-        answer = num1 + num2;
-      } else if (mode === 'twoDigitSubtraction') {
-        num1 = getRandomInt(10, 99);
-        num2 = getRandomInt(10, num1);
-        operator = '-';
-        answer = num1 - num2;
-      } else { // mixed
-        const modes = ['addition18','subtraction18','twoDigitAddition','twoDigitSubtraction'];
-        return makeQuestion(modes[Math.floor(Math.random()*modes.length)]);
-      }
+      if (mode === 'addition18'){ num1=getRandomInt(1,9); num2=getRandomInt(1,9); operator='+'; answer=num1+num2; }
+      else if (mode === 'subtraction18'){ num1=getRandomInt(1,18); num2=getRandomInt(1,num1); operator='-'; answer=num1-num2; }
+      else if (mode === 'twoDigitAddition'){ num1=getRandomInt(10,99); num2=getRandomInt(10,99); operator='+'; answer=num1+num2; }
+      else if (mode === 'twoDigitSubtraction'){ num1=getRandomInt(10,99); num2=getRandomInt(10,num1); operator='-'; answer=num1-num2; }
+      else { const modes=['addition18','subtraction18','twoDigitAddition','twoDigitSubtraction']; return makeQuestion(modes[Math.floor(Math.random()*modes.length)]); }
 
       const set = new Set([answer]);
-
-      if (mode === 'twoDigitAddition' || mode === 'twoDigitSubtraction') {
-        const potentials = [answer + 10, answer - 10];
-        const unit = answer % 10;
-        let added = false;
-        for (const w of potentials) {
-          if (w >= 0 && w <= 199 && w !== answer && (w % 10) === unit && !set.has(w)) {
-            set.add(w); added = true; break;
-          }
-        }
-        if (!added) {
-          for (let i = 0; i < 5; i++) {
-            let off = (getRandomInt(1,3)*10) * (Math.random()<0.5 ? 1 : -1);
-            const w = answer + off;
-            if (w >= 0 && w <= 199 && w !== answer && (w % 10) === unit && !set.has(w)) {
-              set.add(w); break;
-            }
-          }
+      if (mode === 'twoDigitAddition' || mode === 'twoDigitSubtraction'){
+        const potentials=[answer+10, answer-10]; const unit = answer%10; let added=false;
+        for (const w of potentials){ if (w>=0 && w<=199 && w!==answer && w%10===unit && !set.has(w)){ set.add(w); added=true; break; } }
+        if (!added){
+          for (let i=0;i<5;i++){ let off=(getRandomInt(1,3)*10)*(Math.random()<0.5?1:-1);
+            const w=answer+off; if (w>=0 && w<=199 && w!==answer && w%10===unit && !set.has(w)){ set.add(w); break; } }
         }
       }
-
-      while (set.size < 4) {
-        let range = 5;
-        if (answer > 50) range = 15;
-        else if (answer < 10) range = 3;
-        let off = getRandomInt(-range, range);
-        if (off === 0) off = (Math.random()<0.5?1:-1) * getRandomInt(1,2);
-        const w = answer + off;
-        if (w >= 0 && w !== answer && !set.has(w)) set.add(w);
+      while (set.size<4){
+        let range=5; if (answer>50) range=15; else if (answer<10) range=3;
+        let off=getRandomInt(-range,range); if (off===0) off=(Math.random()<0.5?1:-1)*getRandomInt(1,2);
+        const w=answer+off; if (w>=0 && w!==answer && !set.has(w)) set.add(w);
       }
-
-      const opts = Array.from(set).sort(() => Math.random() - 0.5);
-      return { num1, num2, operator, answer, options: opts };
+      const opts = Array.from(set).sort(()=>Math.random()-0.5);
+      return { num1,num2,operator,answer,options:opts };
     }
 
-    function renderQuestion() {
-      const qBox = byId('question-box');
-      const optsBox = byId('options');
-      const feedback = byId('feedback');
-
+    function renderQuestion(){
       byId('score').textContent = String(score);
-      byId('q-index').textContent = String(qIndex + 1);
+      byId('q-index').textContent = String(qIndex+1);
+      const qBox = byId('question-box'); const optsBox = byId('options');
+      const feedback = byId('feedback'); qBox.innerHTML='';
 
-      qBox.innerHTML = '';
-      if (selectedMode === 'twoDigitAddition' || selectedMode === 'twoDigitSubtraction') {
-        const wrap = document.createElement('div');
-        wrap.className = 'flex flex-col items-end text-yellow-800 font-extrabold text-5xl md:text-6xl mx-auto relative min-w-[150px]';
-        const top = document.createElement('div');
-        top.className = 'w-full text-right';
-        top.textContent = currentQuestion.num1;
-
-        const mid = document.createElement('div');
-        mid.className = 'flex items-baseline w-full justify-end relative';
-        const op = document.createElement('span');
-        op.className = 'absolute left-0 text-4xl md:text-5xl -mt-1';
-        op.textContent = currentQuestion.operator;
-        const bottomNum = document.createElement('span');
-        bottomNum.className = 'flex-grow text-right';
-        bottomNum.textContent = currentQuestion.num2;
-
-        const line = document.createElement('div');
-        line.className = 'w-full border-t-4 border-yellow-800 mt-2 pt-2 text-right';
-        line.textContent = '?';
-
-        mid.appendChild(op);
-        mid.appendChild(bottomNum);
-        wrap.appendChild(top);
-        wrap.appendChild(mid);
-        wrap.appendChild(line);
-        qBox.appendChild(wrap);
-      } else {
-        const p = document.createElement('p');
-        p.className = 'text-5xl md:text-6xl font-extrabold text-yellow-800';
-        p.textContent = `${currentQuestion.num1} ${currentQuestion.operator} ${currentQuestion.num2} = ?`;
-        qBox.appendChild(p);
+      if (selectedMode==='twoDigitAddition' || selectedMode==='twoDigitSubtraction'){
+        const wrap=document.createElement('div');
+        wrap.className='flex flex-col items-end text-yellow-800 font-extrabold text-5xl md:text-6xl mx-auto relative min-w-[150px]';
+        const top=document.createElement('div'); top.className='w-full text-right'; top.textContent=currentQuestion.num1;
+        const mid=document.createElement('div'); mid.className='flex items-baseline w-full justify-end relative';
+        const op=document.createElement('span'); op.className='absolute left-0 text-4xl md:text-5xl -mt-1'; op.textContent=currentQuestion.operator;
+        const bottom=document.createElement('span'); bottom.className='flex-grow text-right'; bottom.textContent=currentQuestion.num2;
+        const line=document.createElement('div'); line.className='w-full border-t-4 border-yellow-800 mt-2 pt-2 text-right'; line.textContent='?';
+        mid.appendChild(op); mid.appendChild(bottom); wrap.appendChild(top); wrap.appendChild(mid); wrap.appendChild(line); qBox.appendChild(wrap);
+      }else{
+        const p=document.createElement('p'); p.className='text-5xl md:text-6xl font-extrabold text-yellow-800';
+        p.textContent=`${currentQuestion.num1} ${currentQuestion.operator} ${currentQuestion.num2} = ?`; qBox.appendChild(p);
       }
 
-      // options
-      optsBox.innerHTML = '';
-      currentQuestion.options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'opt-btn p-4 rounded-2xl text-3xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md bg-indigo-300 text-indigo-900 hover:bg-indigo-400';
-        btn.textContent = opt;
-        btn.dataset.value = opt;
-        btn.disabled = false;
-        optsBox.appendChild(btn);
+      optsBox.innerHTML=''; currentQuestion.options.forEach(opt=>{
+        const btn=document.createElement('button');
+        btn.className='opt-btn p-4 rounded-2xl text-3xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md bg-indigo-300 text-indigo-900 hover:bg-indigo-400';
+        btn.textContent=opt; btn.dataset.value=opt; btn.disabled=false; optsBox.appendChild(btn);
       });
 
-      feedback.textContent = '';
-      feedback.className = 'text-2xl md:text-3xl font-bold mt-4';
+      feedback.textContent=''; feedback.className='text-2xl md:text-3xl font-bold mt-4';
     }
 
-    function generateQuestion() {
+    function generateQuestion(){
       const q = makeQuestion(selectedMode);
-      currentQuestion = { num1: q.num1, num2: q.num2, operator: q.operator, answer: q.answer };
-      options = q.options.slice();
-      currentQuestion.options = options;
-      selectedAnswer = null;
-      isCorrectAnswer = null;
-      renderQuestion();
+      currentQuestion = { num1:q.num1, num2:q.num2, operator:q.operator, answer:q.answer };
+      options = q.options.slice(); currentQuestion.options = options;
+      selectedAnswer = null; isCorrectAnswer = null; renderQuestion();
     }
 
-    // === 答案點擊：先移除基底色，正確一律亮「綠色」 ===
-    byId('options').addEventListener('click', async (e) => {
-      const btn = e.target.closest('.opt-btn');
-      if (!btn) return;
+    // 正確亮綠、錯誤亮紅，其他變淡
+    byId('options').addEventListener('click', async (e)=>{
+      const btn = e.target.closest('.opt-btn'); if(!btn) return;
       if (selectedAnswer !== null) return;
 
       selectedAnswer = Number(btn.dataset.value);
       const correct = selectedAnswer === currentQuestion.answer;
       isCorrectAnswer = correct;
 
-      document.querySelectorAll('.opt-btn').forEach(b => {
+      document.querySelectorAll('.opt-btn').forEach(b=>{
         const val = Number(b.dataset.value);
         b.disabled = true;
-
-        // 清掉基底＆舊狀態，避免紫色/靛色覆蓋綠色
-        b.classList.remove(
-          'bg-indigo-300','text-indigo-900','hover:bg-indigo-400',
-          'bg-green-500','bg-red-500','opacity-50','cursor-not-allowed',
-          'scale-110','scale-105','shadow-lg'
-        );
-
-        if (val === currentQuestion.answer) {
+        b.classList.remove('bg-indigo-300','text-indigo-900','hover:bg-indigo-400','bg-green-500','bg-red-500','opacity-50','cursor-not-allowed','scale-110','scale-105','shadow-lg');
+        if (val === currentQuestion.answer){
           b.classList.add('bg-green-500','text-white','scale-110','shadow-lg');
-        } else if (val === selectedAnswer && !correct) {
+        }else if (val === selectedAnswer && !correct){
           b.classList.add('bg-red-500','text-white','scale-105','shadow-lg');
-        } else {
+        }else{
           b.classList.add('bg-indigo-300','text-indigo-900','opacity-50','cursor-not-allowed');
         }
       });
 
       const fb = byId('feedback');
-      if (correct) {
-        score += 10;
-        fb.textContent = '✅ 答對了！';
-        await playCorrect();
-      } else {
-        fb.textContent = `❌ 答錯了，正確答案是 ${currentQuestion.answer}`;
-        await playIncorrect();
-      }
+      if (correct){ score += 10; fb.textContent='✅ 答對了！'; await playCorrect(); }
+      else { fb.textContent=`❌ 答錯了，正確答案是 ${currentQuestion.answer}`; await playIncorrect(); }
 
-      questionHistory.push({
-        question: `${currentQuestion.num1} ${currentQuestion.operator} ${currentQuestion.num2}`,
-        correctAnswer: currentQuestion.answer,
-        userAnswer: selectedAnswer,
-        isCorrect: correct
-      });
+      questionHistory.push({ question:`${currentQuestion.num1} ${currentQuestion.operator} ${currentQuestion.num2}`, correctAnswer:currentQuestion.answer, userAnswer:selectedAnswer, isCorrect:correct });
 
-      setTimeout(() => {
-        if (qIndex < 9) {
-          qIndex += 1;
-          generateQuestion();
-        } else {
-          showResult();
-        }
-      }, 1500);
+      setTimeout(()=>{ if (qIndex<9){ qIndex+=1; generateQuestion(); } else { showResult(); } }, 1500);
     });
 
-    function startRound() {
-      score = 0;
-      qIndex = 0;
-      questionHistory = [];
-      selectedAnswer = null;
-      isCorrectAnswer = null;
-
-      hide(practiceSelect);
-      hide(practiceResult);
-      show(practicePlay);
-
-      updatePracticeTitle();
-      generateQuestion();
+    function startRound(){
+      score=0; qIndex=0; questionHistory=[]; selectedAnswer=null; isCorrectAnswer=null;
+      practiceSelect.classList.add('hidden'); practiceResult.classList.add('hidden'); practicePlay.classList.remove('hidden');
+      updatePracticeTitle(); generateQuestion();
     }
 
-    function showResult() {
-      hide(practicePlay);
-      show(practiceResult);
-
+    function showResult(){
+      practicePlay.classList.add('hidden'); practiceResult.classList.remove('hidden');
       byId('final-score').textContent = `${score} 分`;
-
-      const rb = byId('review-body');
-      rb.innerHTML = '';
-      questionHistory.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-blue-50 last:border-b-0 hover:bg-blue-50 transition-colors duration-200';
+      const rb = byId('review-body'); rb.innerHTML='';
+      questionHistory.forEach(item=>{
+        const tr=document.createElement('tr');
+        tr.className='border-b border-blue-50 last:border-b-0 hover:bg-blue-50 transition-colors duration-200';
         tr.innerHTML = `
           <td class="py-2 px-3 font-bold">${item.question}</td>
-          <td class="py-2 px-3 font-semibold ${item.isCorrect ? 'text-green-600' : 'text-red-500'}">${item.userAnswer}</td>
-          <td class="py-2 px-3 font-bold text-gray-700">${item.correctAnswer}</td>
-        `;
+          <td class="py-2 px-3 font-semibold ${item.isCorrect?'text-green-600':'text-red-500'}">${item.userAnswer}</td>
+          <td class="py-2 px-3 font-bold text-gray-700">${item.correctAnswer}</td>`;
         rb.appendChild(tr);
       });
-
-      const map = {
-        addition18: '再玩一次18以內加法！✨',
-        subtraction18: '再玩一次18以內減法！✨',
-        twoDigitAddition: '再玩一次二位數加法！🔢',
-        twoDigitSubtraction: '再玩一次二位數減法！📊',
-        mixed: '再玩一次綜合練習！🎲'
-      };
+      const map={ addition18:'再玩一次18以內加法！✨', subtraction18:'再玩一次18以內減法！✨', twoDigitAddition:'再玩一次二位數加法！🔢', twoDigitSubtraction:'再玩一次二位數減法！📊', mixed:'再玩一次綜合練習！🎲' };
       byId('btn-retry').textContent = map[selectedMode] || '再玩一次！✨';
     }
 
-    byId('btn-reselect').addEventListener('click', () => {
-      selectedMode = null;
-      btnStart.disabled = true;
+    byId('btn-reselect').addEventListener('click', ()=>{
+      selectedMode=null;
+      btnStart.disabled=true;
       btnStart.classList.add('bg-gray-300','text-gray-600','cursor-not-allowed');
       btnStart.classList.remove('bg-blue-500','text-white','hover:bg-blue-600');
-
-      modeButtons.forEach(b => {
-        b.classList.remove('bg-indigo-500','text-white','ring-4','ring-indigo-300',
-                           'bg-rose-500','ring-rose-300',
-                           'bg-amber-500','ring-amber-300',
-                           'bg-cyan-500','ring-cyan-300',
-                           'bg-teal-500','ring-teal-300');
+      document.querySelectorAll('.mode-btn').forEach(b=>{
+        b.classList.remove('bg-indigo-500','text-white','ring-4','ring-indigo-300','bg-rose-500','ring-rose-300','bg-amber-500','ring-amber-300','bg-cyan-500','ring-cyan-300','bg-teal-500','ring-teal-300');
       });
-
-      hide(practicePlay);
-      hide(practiceResult);
-      show(practiceSelect);
+      practicePlay.classList.add('hidden'); practiceResult.classList.add('hidden'); practiceSelect.classList.remove('hidden');
     });
+    byId('btn-retry').addEventListener('click', ()=> startRound());
 
-    byId('btn-retry').addEventListener('click', () => startRound());
-
-    // ---------- Init ----------
+    // Init
     buildAdditionTable(10);
     setNavStyles();
   </script>
 </body>
 </html>
-
-
