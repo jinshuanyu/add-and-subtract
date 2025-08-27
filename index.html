@@ -87,6 +87,20 @@
       #addition-table th, #addition-table td{ padding: 6px 6px; }
     }
 
+    /* ====== 重點：讓滑過時的 highlight 延伸到表頭與最左欄 ======
+       我們用和 JS 相同的 class 名稱（bg-yellow-100 / 300），
+       但用自己的 CSS 直接指定顏色，確保即使 Tailwind 沒掃到也能生效。 */
+    #addition-table th.bg-yellow-300,
+    #addition-table td.bg-yellow-300 {
+      background-color: #fcd34d !important; /* yellow-300 */
+      color: #111827 !important;
+    }
+    #addition-table th.bg-yellow-100,
+    #addition-table td.bg-yellow-100 {
+      background-color: #fef3c7 !important; /* yellow-100 */
+      color: #111827 !important;
+    }
+
     /* ===== 版權 ===== */
     .site-footer{
       width: 100%;
@@ -126,7 +140,7 @@
       <div class="overflow-x-auto">
         <table id="addition-table" class="text-sm sm:text-base md:text-lg"></table>
       </div>
-     
+      <p class="mt-6 text-gray-600 text-lg">這個表格可以幫助你快速學習加法！</p>
     </section>
 
     <!-- Practice Page -->
@@ -284,7 +298,6 @@
 
       const thead = document.createElement('thead');
       const trh = document.createElement('tr');
-      trh.className = '';
 
       const th0 = document.createElement('th');
       th0.textContent = '+';
@@ -318,16 +331,20 @@
       tbl.appendChild(thead);
       tbl.appendChild(tbody);
 
-      // Hover highlight
+      // Hover highlight：列/欄淡黃 + 表頭/最左欄深黃
       tbl.addEventListener('mouseover', (e) => {
         const cell = e.target.closest('td');
         if (!cell || !cell.dataset.row) return;
         const r = Number(cell.dataset.row);
         const c = Number(cell.dataset.col);
+
+        // 表頭與最左欄：深黃
         tbl.querySelectorAll(`[data-row-header="${r}"]`).forEach(el => el.classList.add('bg-yellow-300'));
         tbl.querySelectorAll(`th[data-col="${c}"]`).forEach(el => el.classList.add('bg-yellow-300'));
+        // 該列與該欄：淡黃
         tbl.querySelectorAll(`td[data-row="${r}"], td[data-col="${c}"]`).forEach(el => el.classList.add('bg-yellow-100'));
       });
+
       tbl.addEventListener('mouseout', () => {
         tbl.querySelectorAll('.bg-yellow-100').forEach(el => el.classList.remove('bg-yellow-100'));
         tbl.querySelectorAll('.bg-yellow-300').forEach(el => el.classList.remove('bg-yellow-300'));
@@ -528,4 +545,3 @@
   </script>
 </body>
 </html>
-
