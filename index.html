@@ -114,6 +114,12 @@
       border-top: 1px solid #e5e7eb;
       background: transparent;
     }
+    /* 題目回顧：第二、三欄（你的答案／正確答案）置中 */
+#review-box tbody td:nth-child(2),
+#review-box tbody td:nth-child(3){
+  text-align: center !important;  /* 蓋過 table 的 text-left */
+}
+
   </style>
 
   <style>
@@ -580,3 +586,4 @@
   </script>
 </body>
 </html>
+
