@@ -132,6 +132,22 @@
   }
 }
 </style>
+  /* 手機：把「題目回顧」整個框加寬（不影響其他區塊） */
+@media (max-width: 480px){
+  #practice-result .bg-white.rounded-xl.shadow-lg{
+    max-width: 100% !important;  /* 蓋掉 max-w-xl */
+    width: auto;
+    margin-left: -8px;           /* 吃掉 main 的左右 padding */
+    margin-right: -8px;
+    padding-left: 12px;          /* 邊緣留一點內距 */
+    padding-right: 12px;
+    border-radius: 12px;         /* 保持圓角 */
+  }
+
+  /* 保險：避免任何水平捲動 */
+  html, body{ overflow-x: hidden; }
+}
+
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-pink-100 to-blue-100 flex flex-col items-center justify-start p-4">
@@ -401,11 +417,11 @@
 
     function updatePracticeTitle() {
       const map = {
-        addition18: '18以內加法練習 ✨',
-        subtraction18: '18以內減法練習 ✨',
-        twoDigitAddition: '二位數加法練習 ✨',
-        twoDigitSubtraction: '二位數減法練習 ✨',
-        mixed: '綜合加減法練習 ✨'
+        addition18: '18以內加法練習 ',
+        subtraction18: '18以內減法練習 ',
+        twoDigitAddition: '二位數加法練習 ',
+        twoDigitSubtraction: '二位數減法練習 ',
+        mixed: '綜合加減法練習 '
       };
       byId('practice-title').textContent = map[selectedMode] || '加減法練習 ✨';
     }
@@ -540,8 +556,8 @@
           <td class="py-2 px-3 font-bold text-gray-700">${item.correctAnswer}</td>`;
         rb.appendChild(tr);
       });
-      const map={ addition18:'再玩一次18以內加法！✨', subtraction18:'再玩一次18以內減法！✨', twoDigitAddition:'再玩一次二位數加法！🔢', twoDigitSubtraction:'再玩一次二位數減法！📊', mixed:'再玩一次綜合練習！🎲' };
-      byId('btn-retry').textContent = map[selectedMode] || '再玩一次！✨';
+      const map={ addition18:'再玩一次18以內加法！', subtraction18:'再玩一次18以內減法！', twoDigitAddition:'再玩一次二位數加法！', twoDigitSubtraction:'再玩一次二位數減法！', mixed:'再玩一次綜合練習！' };
+      byId('btn-retry').textContent = map[selectedMode] || '再玩一次！';
     }
 
     byId('btn-reselect').addEventListener('click', ()=>{
@@ -562,6 +578,7 @@
   </script>
 </body>
 </html>
+
 
 
 
