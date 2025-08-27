@@ -12,6 +12,22 @@
 
   <!-- 自訂樣式（放在 Tailwind 後面） -->
   <style>
+/* 統一把練習題的字變小一號（直式與橫式都蓋） */
+#question-box > p,
+#question-box > div{
+  font-size: clamp(28px, 6vw, 44px) !important; /* 你也可以改成 26px / 5.5vw / 40px 等 */
+}
+
+/* 手機再小一點（可選） */
+@media (max-width: 480px){
+  #question-box > p,
+  #question-box > div{
+    font-size: 32px !important;
+  }
+}
+</style>
+
+  <style>
     /* ===== 導覽列（兩顆按鈕）—外觀與不外凸 ===== */
     nav.nav-bar{
       width: 100%;
@@ -545,4 +561,5 @@
   </script>
 </body>
 </html>
+
 
