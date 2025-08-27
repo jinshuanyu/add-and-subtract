@@ -48,22 +48,7 @@
 #btn-learning:active,
 #btn-practice:active{ transform: translateY(0) scale(.98) }
 
-/* 手機：兩顆固定同一行、不捲動，並且縮小 */
-@media (max-width: 480px){
-  nav{
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    justify-content: center;
-  }
-  #btn-learning,
-  #btn-practice{
-    width: 100%;
-    padding: 10px 12px !important;  /* 蓋過 Tailwind 的 px/py */
-    font-size: 16px !important;      /* 蓋過 text-[14px]/text-lg */
-    line-height: 1.2;
-  }
-}
+
 
 /* === 加法表邊界（更貼邊、邊框一致、手機字體別太大） === */
 #addition-table{
@@ -94,6 +79,37 @@
   #addition-table td{
     padding: 6px 6px;
   }
+}
+</style>
+<style>
+/* 手機：把 nav 鎖在視窗寬度內並置中，不會溢出到左邊 */
+@media (max-width: 480px){
+  nav{
+    /* 讓 nav 寬度 = 螢幕寬度 - 24px 邊距；並置中 */
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    margin: 0 auto 16px;
+    padding: 10px 12px;               /* 內距小一點 */
+    box-sizing: border-box;
+    border-radius: 16px;
+
+    /* 兩顆按鈕固定同一行 */
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  /* 兩顆按鈕各佔一半、縮小字與內距 */
+  #btn-learning,
+  #btn-practice{
+    width: 100%;
+    font-size: 16px !important;
+    line-height: 1.2;
+    padding: 10px 12px !important;
+  }
+
+  /* 保險：整頁不允許水平捲動（避免其他元素造成的 1~2px 漂移） */
+  html, body{ overflow-x: hidden; }
 }
 </style>
 
@@ -672,4 +688,5 @@
   </script>
 </body>
 </html>
+
 
