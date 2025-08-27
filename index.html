@@ -32,6 +32,70 @@
     }
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* === 兩顆導覽按鈕（學習／練習）—外觀與手機縮小 === */
+#btn-learning,
+#btn-practice{
+  font-weight: 900;
+  letter-spacing: .2px;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 9999px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+#btn-learning:hover,
+#btn-practice:hover{ transform: translateY(-1px) }
+#btn-learning:active,
+#btn-practice:active{ transform: translateY(0) scale(.98) }
+
+/* 手機：兩顆固定同一行、不捲動，並且縮小 */
+@media (max-width: 480px){
+  nav{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    justify-content: center;
+  }
+  #btn-learning,
+  #btn-practice{
+    width: 100%;
+    padding: 10px 12px !important;  /* 蓋過 Tailwind 的 px/py */
+    font-size: 16px !important;      /* 蓋過 text-[14px]/text-lg */
+    line-height: 1.2;
+  }
+}
+
+/* === 加法表邊界（更貼邊、邊框一致、手機字體別太大） === */
+#addition-table{
+  border-collapse: collapse !important;
+  border: 1px solid #bfdbfe !important; /* 和原本藍邊一致 */
+  border-radius: 6px !important;
+  box-shadow: 0 6px 16px rgba(30,64,175,.08);
+}
+#addition-table th,
+#addition-table td{
+  padding: 8px 8px;
+  white-space: nowrap;
+  text-align: center;
+  border-bottom: 1px solid #bfdbfe;
+}
+
+/* 手機：表格更貼螢幕邊、字體再小一點、cell 更緊湊 */
+@media (max-width: 480px){
+  #page-learning .overflow-x-auto{
+    margin-left: -10px;
+    margin-right: -10px;
+    padding: 0 4px;       /* 幾乎貼齊螢幕 */
+  }
+  #addition-table{
+    font-size: 14px !important;
+  }
+  #addition-table th,
+  #addition-table td{
+    padding: 6px 6px;
+  }
+}
+</style>
 
   <!-- Tone.js -->
   <script src="https://unpkg.com/tone@14.8.49/build/Tone.js"></script>
@@ -608,3 +672,4 @@
   </script>
 </body>
 </html>
+
