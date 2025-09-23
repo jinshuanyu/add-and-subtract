@@ -238,6 +238,17 @@ nav.nav-bar{
   margin-left: auto !important;
   margin-right: auto !important;
 }
+/* === 寬螢幕：讓加法表接近正方形、置中（覆蓋前面設定） === */
+@media (min-width: 768px){
+  #addition-table{
+    width: min(92vmin, 720px) !important; /* 用視窗較短邊控制寬度 */
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  #addition-table th, #addition-table td{
+    padding: 10px 10px !important; /* 視覺上更「方」 */
+  }
+}
 
   </style>
 </head>
@@ -762,6 +773,7 @@ nav.nav-bar{
 
 </body>
 </html>
+
 
 
 
