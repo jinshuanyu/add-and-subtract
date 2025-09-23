@@ -270,6 +270,27 @@ nav.nav-bar{
     max-width: 100% !important;
   }
 }
+/* === 讓「綜合練習」與其他模式鍵同寬（同一欄位寬度） === */
+/* 把它那一排的父層 .flex 改成跟上面一樣的 grid 版型 */
+#practice-select > .flex{
+  display: grid !important;
+  grid-template-columns: 1fr;       /* 手機一欄 */
+  gap: 12px !important;
+}
+
+/* sm(≥640px) 起：兩欄，讓綜合練習的寬度 = 其他按鈕的欄寬 */
+@media (min-width: 640px){
+  #practice-select > .flex{
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* 取消原本 inline 的 max-width:300px 限制，讓它吃滿欄位 */
+#practice-select button[data-mode="mixed"]{
+  max-width: none !important;
+  width: 100% !important;        /* 佔滿欄位寬度，就會跟其它按鈕一樣寬 */
+  display: block !important;
+}
 
   </style>
 </head>
@@ -794,6 +815,7 @@ nav.nav-bar{
 
 </body>
 </html>
+
 
 
 
