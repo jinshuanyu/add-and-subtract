@@ -249,6 +249,27 @@ nav.nav-bar{
     padding: 10px 10px !important; /* 視覺上更「方」 */
   }
 }
+/* === 寬螢幕：把上方 nav 與練習入口的底框縮到與加法表一致寬度 === */
+@media (min-width: 768px){
+  /* 最上面兩顆大按鈕的白色底框 */
+  nav.nav-bar{
+    width: min(92vmin, 720px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* 練習頁入口整塊（標題 + 模式按鈕 + 開始按鈕） */
+  #practice-select{
+    width: min(92vmin, 720px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* 不要讓內層 .max-w-3xl 把寬度撐回去 */
+  #practice-select .max-w-3xl{
+    max-width: 100% !important;
+  }
+}
 
   </style>
 </head>
@@ -773,6 +794,7 @@ nav.nav-bar{
 
 </body>
 </html>
+
 
 
 
