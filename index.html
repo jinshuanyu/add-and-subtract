@@ -238,6 +238,7 @@ nav.nav-bar{
   margin-left: auto !important;
   margin-right: auto !important;
 }
+
 /* === 寬螢幕：讓加法表接近正方形、置中（覆蓋前面設定） === */
 @media (min-width: 768px){
   #addition-table{
@@ -249,6 +250,7 @@ nav.nav-bar{
     padding: 10px 10px !important; /* 視覺上更「方」 */
   }
 }
+
 /* === 寬螢幕：把上方 nav 與練習入口的底框縮到與加法表一致寬度 === */
 @media (min-width: 768px){
   /* 最上面兩顆大按鈕的白色底框 */
@@ -270,29 +272,22 @@ nav.nav-bar{
     max-width: 100% !important;
   }
 }
-/* === 讓「綜合練習」與其他模式鍵同寬（同一欄位寬度） === */
-/* 把它那一排的父層 .flex 改成跟上面一樣的 grid 版型 */
-#practice-select > .flex{
-  display: grid !important;
-  grid-template-columns: 1fr;       /* 手機一欄 */
-  gap: 12px !important;
-}
 
-/* sm(≥640px) 起：兩欄，讓綜合練習的寬度 = 其他按鈕的欄寬 */
-@media (min-width: 640px){
-  #practice-select > .flex{
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-/* 取消原本 inline 的 max-width:300px 限制，讓它吃滿欄位 */
-#practice-select button[data-mode="mixed"]{
+/* === 綜合練習：和前四顆同寬（手機滿版；sm 起半版寬） === */
+/* 取消 HTML 上的 inline max-width 限制（若還在的話） */
+#practice-select .flex.justify-center button[data-mode="mixed"]{
   max-width: none !important;
-  width: 100% !important;        /* 佔滿欄位寬度，就會跟其它按鈕一樣寬 */
+  width: 100% !important;            /* 手機：滿版 */
   display: block !important;
 }
+/* sm(≥640px) 起改為半版寬，視覺上與 grid 兩欄一致 */
+@media (min-width: 640px){
+  #practice-select .flex.justify-center button[data-mode="mixed"]{
+    width: 50% !important;
+  }
+}
+</style>
 
-  </style>
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-pink-100 to-blue-100 flex flex-col items-center justify-start p-4">
@@ -815,6 +810,7 @@ nav.nav-bar{
 
 </body>
 </html>
+
 
 
 
