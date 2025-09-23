@@ -370,313 +370,399 @@ nav.nav-bar{
  
 
   <!-- 行為腳本 -->
-  <script>
-    // ---------- Global state ----------
-    let currentPage = 'learning';
-    let selectedMode = null;
-    let score = 0;
-    let qIndex = 0;
-    let currentQuestion = null;
-    let options = [];
-    let questionHistory = [];
-    let selectedAnswer = null;
-    let isCorrectAnswer = null;
+<script>
+  // ---------- Global state ----------
+  let currentPage = 'learning';
+  let selectedMode = null;
+  let score = 0;
+  let qIndex = 0;
+  let currentQuestion = null;
+  let options = [];
+  let questionHistory = [];
+  let selectedAnswer = null;
+  let isCorrectAnswer = null;
 
-    const synth = new Tone.Synth().toDestination();
-    async function initializeAudioContext() {
-      if (Tone.context.state !== 'running') await Tone.start();
+  // ✅ 平均分配正解位置用：每回合用 0,1,2,3 亂序輪流
+  let correctPosQueue = [];
+
+  // ---------- Audio ----------
+  const synth = new Tone.Synth().toDestination();
+  async function initializeAudioContext() {
+    if (Tone.context.state !== 'running') await Tone.start();
+  }
+
+  // ---------- Utils ----------
+  const byId = (id) => document.getElementById(id);
+  function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+  function getRandomInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function shuffle(arr){
+    for (let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-
-    const byId = (id) => document.getElementById(id);
-    const btnLearning = byId('btn-learning');
-    const btnPractice = byId('btn-practice');
-    const pageLearning = byId('page-learning');
-    const pagePractice = byId('page-practice');
-
-    function setNavStyles() {
-      if (currentPage === 'learning') {
-        btnLearning.classList.add('bg-purple-500','text-white','shadow-md');
-        btnLearning.classList.remove('bg-purple-200','text-purple-800','hover:bg-purple-300');
-        btnPractice.classList.add('bg-green-200','text-green-800','hover:bg-green-300');
-        btnPractice.classList.remove('bg-green-500','text-white','shadow-md');
-      } else {
-        btnPractice.classList.add('bg-green-500','text-white','shadow-md');
-        btnPractice.classList.remove('bg-green-200','text-green-800','hover:bg-green-300');
-        btnLearning.classList.add('bg-purple-200','text-purple-800','hover:bg-purple-300');
-        btnLearning.classList.remove('bg-purple-500','text-white','shadow-md');
-      }
+    return arr;
+  }
+  function nextCorrectPos(){
+    if (correctPosQueue.length === 0){
+      correctPosQueue = shuffle([0,1,2,3].slice()); // 新一輪 4 個位置亂序
     }
+    return correctPosQueue.shift();
+  }
 
-    btnLearning.addEventListener('click', async () => {
-      await initializeAudioContext();
-      currentPage = 'learning';
-      pageLearning.classList.remove('hidden');
-      pagePractice.classList.add('hidden');
-      setNavStyles();
-    });
+  // ---------- Nav ----------
+  const btnLearning = byId('btn-learning');
+  const btnPractice = byId('btn-practice');
+  const pageLearning = byId('page-learning');
+  const pagePractice = byId('page-practice');
 
-    btnPractice.addEventListener('click', async () => {
-      await initializeAudioContext();
-      currentPage = 'practice';
-      pageLearning.classList.add('hidden');
-      pagePractice.classList.remove('hidden');
-      setNavStyles();
-    });
+  function setNavStyles() {
+    if (currentPage === 'learning') {
+      btnLearning.classList.add('bg-purple-500','text-white','shadow-md');
+      btnLearning.classList.remove('bg-purple-200','text-purple-800','hover:bg-purple-300');
+      btnPractice.classList.add('bg-green-200','text-green-800','hover:bg-green-300');
+      btnPractice.classList.remove('bg-green-500','text-white','shadow-md');
+    } else {
+      btnPractice.classList.add('bg-green-500','text-white','shadow-md');
+      btnPractice.classList.remove('bg-green-200','text-green-800','hover:bg-green-300');
+      btnLearning.classList.add('bg-purple-200','text-purple-800','hover:bg-purple-300');
+      btnLearning.classList.remove('bg-purple-500','text-white','shadow-md');
+    }
+  }
 
-    // ---- Addition table ----
-    function buildAdditionTable(n = 10) {
-      const tbl = byId('addition-table');
-      tbl.innerHTML = '';
+  btnLearning.addEventListener('click', async () => {
+    await initializeAudioContext();
+    currentPage = 'learning';
+    pageLearning.classList.remove('hidden');
+    pagePractice.classList.add('hidden');
+    setNavStyles();
+  });
 
-      const thead = document.createElement('thead');
-      const trh = document.createElement('tr');
+  btnPractice.addEventListener('click', async () => {
+    await initializeAudioContext();
+    currentPage = 'practice';
+    pageLearning.classList.add('hidden');
+    pagePractice.classList.remove('hidden');
+    setNavStyles();
+  });
 
-      const th0 = document.createElement('th');
-      th0.textContent = '+';
-      trh.appendChild(th0);
+  // ---------- Addition table ----------
+  function buildAdditionTable(n = 10) {
+    const tbl = byId('addition-table');
+    tbl.innerHTML = '';
+
+    const thead = document.createElement('thead');
+    const trh = document.createElement('tr');
+
+    const th0 = document.createElement('th');
+    th0.textContent = '+';
+    trh.appendChild(th0);
+
+    for (let c = 1; c <= n; c++) {
+      const th = document.createElement('th');
+      th.textContent = c;
+      th.dataset.col = c;
+      trh.appendChild(th);
+    }
+    thead.appendChild(trh);
+
+    const tbody = document.createElement('tbody');
+    for (let r = 1; r <= n; r++) {
+      const tr = document.createElement('tr');
+      const tdRow = document.createElement('td');
+      tdRow.textContent = r;
+      tdRow.dataset.rowHeader = r;
+      tr.appendChild(tdRow);
 
       for (let c = 1; c <= n; c++) {
-        const th = document.createElement('th');
-        th.textContent = c;
-        th.dataset.col = c;
-        trh.appendChild(th);
+        const td = document.createElement('td');
+        td.textContent = r + c;
+        td.dataset.row = r;
+        td.dataset.col = c;
+        tr.appendChild(td);
       }
-      thead.appendChild(trh);
-
-      const tbody = document.createElement('tbody');
-      for (let r = 1; r <= n; r++) {
-        const tr = document.createElement('tr');
-        const tdRow = document.createElement('td');
-        tdRow.textContent = r;
-        tdRow.dataset.rowHeader = r;
-        tr.appendChild(tdRow);
-
-        for (let c = 1; c <= n; c++) {
-          const td = document.createElement('td');
-          td.textContent = r + c;
-          td.dataset.row = r;
-          td.dataset.col = c;
-          tr.appendChild(td);
-        }
-        tbody.appendChild(tr);
-      }
-      tbl.appendChild(thead);
-      tbl.appendChild(tbody);
-
-      // Hover highlight：列/欄淡黃 + 表頭/最左欄深黃
-      tbl.addEventListener('mouseover', (e) => {
-        const cell = e.target.closest('td');
-        if (!cell || !cell.dataset.row) return;
-        const r = Number(cell.dataset.row);
-        const c = Number(cell.dataset.col);
-
-        // 表頭與最左欄：深黃
-        tbl.querySelectorAll(`[data-row-header="${r}"]`).forEach(el => el.classList.add('bg-yellow-300'));
-        tbl.querySelectorAll(`th[data-col="${c}"]`).forEach(el => el.classList.add('bg-yellow-300'));
-        // 該列與該欄：淡黃
-        tbl.querySelectorAll(`td[data-row="${r}"], td[data-col="${c}"]`).forEach(el => el.classList.add('bg-yellow-100'));
-      });
-
-      tbl.addEventListener('mouseout', () => {
-        tbl.querySelectorAll('.bg-yellow-100').forEach(el => el.classList.remove('bg-yellow-100'));
-        tbl.querySelectorAll('.bg-yellow-300').forEach(el => el.classList.remove('bg-yellow-300'));
-      });
+      tbody.appendChild(tr);
     }
+    tbl.appendChild(thead);
+    tbl.appendChild(tbody);
 
-    // ---- Practice logic ----
-    const practiceSelect = byId('practice-select');
-    const practicePlay = byId('practice-play');
-    const practiceResult = byId('practice-result');
-    const modeButtons = document.querySelectorAll('.mode-btn');
-    const btnStart = byId('btn-start');
+    // Hover highlight：列/欄淡黃 + 表頭/最左欄深黃
+    tbl.addEventListener('mouseover', (e) => {
+      const cell = e.target.closest('td');
+      if (!cell || !cell.dataset.row) return;
+      const r = Number(cell.dataset.row);
+      const c = Number(cell.dataset.col);
 
-    modeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        modeButtons.forEach(b => {
-          b.classList.remove('bg-indigo-500','text-white','ring-4','ring-indigo-300',
-                             'bg-rose-500','ring-rose-300',
-                             'bg-amber-500','ring-amber-300',
-                             'bg-cyan-500','ring-cyan-300',
-                             'bg-teal-500','ring-teal-300');
-        });
-        selectedMode = btn.dataset.mode;
-        if (selectedMode === 'addition18') btn.classList.add('bg-indigo-500','text-white','ring-4','ring-indigo-300');
-        if (selectedMode === 'subtraction18') btn.classList.add('bg-rose-500','text-white','ring-4','ring-rose-300');
-        if (selectedMode === 'twoDigitAddition') btn.classList.add('bg-amber-500','text-white','ring-4','ring-amber-300');
-        if (selectedMode === 'twoDigitSubtraction') btn.classList.add('bg-cyan-500','text-white','ring-4','ring-cyan-300');
-        if (selectedMode === 'mixed') btn.classList.add('bg-teal-500','text-white','ring-4','ring-teal-300');
-
-        btnStart.disabled = false;
-        btnStart.classList.remove('bg-gray-300','text-gray-600','cursor-not-allowed');
-        btnStart.classList.add('bg-blue-500','text-white','hover:bg-blue-600');
-      });
+      tbl.querySelectorAll(`[data-row-header="${r}"]`).forEach(el => el.classList.add('bg-yellow-300'));
+      tbl.querySelectorAll(`th[data-col="${c}"]`).forEach(el => el.classList.add('bg-yellow-300'));
+      tbl.querySelectorAll(`td[data-row="${r}"], td[data-col="${c}"]`).forEach(el => el.classList.add('bg-yellow-100'));
     });
 
-    btnStart.addEventListener('click', () => startRound());
+    tbl.addEventListener('mouseout', () => {
+      tbl.querySelectorAll('.bg-yellow-100').forEach(el => el.classList.remove('bg-yellow-100'));
+      tbl.querySelectorAll('.bg-yellow-300').forEach(el => el.classList.remove('bg-yellow-300'));
+    });
+  }
 
-    function updatePracticeTitle() {
-      const map = {
-        addition18: '18以內加法練習',
-        subtraction18: '18以內減法練習',
-        twoDigitAddition: '二位數加法練習',
-        twoDigitSubtraction: '二位數減法練習',
-        mixed: '綜合加減法練習'
-      };
-      byId('practice-title').textContent = map[selectedMode] || '加減法練習';
+  // ---------- Practice logic ----------
+  const practiceSelect = byId('practice-select');
+  const practicePlay = byId('practice-play');
+  const practiceResult = byId('practice-result');
+  const modeButtons = document.querySelectorAll('.mode-btn');
+  const btnStart = byId('btn-start');
+
+  modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      modeButtons.forEach(b => {
+        b.classList.remove('bg-indigo-500','text-white','ring-4','ring-indigo-300',
+                           'bg-rose-500','ring-rose-300',
+                           'bg-amber-500','ring-amber-300',
+                           'bg-cyan-500','ring-cyan-300',
+                           'bg-teal-500','ring-teal-300');
+      });
+      selectedMode = btn.dataset.mode;
+      if (selectedMode === 'addition18') btn.classList.add('bg-indigo-500','text-white','ring-4','ring-indigo-300');
+      if (selectedMode === 'subtraction18') btn.classList.add('bg-rose-500','text-white','ring-4','ring-rose-300');
+      if (selectedMode === 'twoDigitAddition') btn.classList.add('bg-amber-500','text-white','ring-4','ring-amber-300');
+      if (selectedMode === 'twoDigitSubtraction') btn.classList.add('bg-cyan-500','text-white','ring-4','ring-cyan-300');
+      if (selectedMode === 'mixed') btn.classList.add('bg-teal-500','text-white','ring-4','ring-teal-300');
+
+      btnStart.disabled = false;
+      btnStart.classList.remove('bg-gray-300','text-gray-600','cursor-not-allowed');
+      btnStart.classList.add('bg-blue-500','text-white','hover:bg-blue-600');
+    });
+  });
+
+  btnStart.addEventListener('click', () => startRound());
+
+  function updatePracticeTitle() {
+    const map = {
+      addition18: '18以內加法練習',
+      subtraction18: '18以內減法練習',
+      twoDigitAddition: '二位數加法練習',
+      twoDigitSubtraction: '二位數減法練習',
+      mixed: '綜合加減法練習'
+    };
+    byId('practice-title').textContent = map[selectedMode] || '加減法練習';
+  }
+
+  async function playCorrect(){
+    if (Tone.context.state === 'running'){
+      synth.triggerAttackRelease("C5","8n"); await delay(100);
+      synth.triggerAttackRelease("G5","8n"); await delay(200);
+      synth.triggerAttackRelease("C5","8n"); await delay(100);
+      synth.triggerAttackRelease("G5","8n");
+    }
+  }
+  async function playIncorrect(){
+    if (Tone.context.state === 'running'){
+      synth.triggerAttackRelease("F4","8n"); await delay(250);
+      synth.triggerAttackRelease("C4","8n");
+    }
+  }
+
+  function makeQuestion(mode){
+    let num1, num2, operator, answer;
+
+    if (mode === 'addition18'){
+      num1 = getRandomInt(1,9); num2 = getRandomInt(1,9); operator = '+'; answer = num1 + num2;
+    } else if (mode === 'subtraction18'){
+      num1 = getRandomInt(1,18); num2 = getRandomInt(1,num1); operator = '-'; answer = num1 - num2;
+    } else if (mode === 'twoDigitAddition'){
+      num1 = getRandomInt(10,99); num2 = getRandomInt(10,99); operator = '+'; answer = num1 + num2;
+    } else if (mode === 'twoDigitSubtraction'){
+      num1 = getRandomInt(10,99); num2 = getRandomInt(10,num1); operator = '-'; answer = num1 - num2;
+    } else {
+      const modes=['addition18','subtraction18','twoDigitAddition','twoDigitSubtraction'];
+      return makeQuestion(modes[Math.floor(Math.random()*modes.length)]);
     }
 
-    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
-    async function playCorrect(){
-      if (Tone.context.state === 'running'){
-        synth.triggerAttackRelease("C5","8n"); await delay(100);
-        synth.triggerAttackRelease("G5","8n"); await delay(200);
-        synth.triggerAttackRelease("C5","8n"); await delay(100);
-        synth.triggerAttackRelease("G5","8n");
-      }
-    }
-    async function playIncorrect(){
-      if (Tone.context.state === 'running'){
-        synth.triggerAttackRelease("F4","8n"); await delay(250);
-        synth.triggerAttackRelease("C4","8n");
-      }
-    }
-
-    function getRandomInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
-
-    function makeQuestion(mode){
-      let num1, num2, operator, answer;
-      if (mode === 'addition18'){ num1=getRandomInt(1,9); num2=getRandomInt(1,9); operator='+'; answer=num1+num2; }
-      else if (mode === 'subtraction18'){ num1=getRandomInt(1,18); num2=getRandomInt(1,num1); operator='-'; answer=num1-num2; }
-      else if (mode === 'twoDigitAddition'){ num1=getRandomInt(10,99); num2=getRandomInt(10,99); operator='+'; answer=num1+num2; }
-      else if (mode === 'twoDigitSubtraction'){ num1=getRandomInt(10,99); num2=getRandomInt(10,num1); operator='-'; answer=num1-num2; }
-      else { const modes=['addition18','subtraction18','twoDigitAddition','twoDigitSubtraction']; return makeQuestion(modes[Math.floor(Math.random()*modes.length)]); }
-
-      const set = new Set([answer]);
-      if (mode === 'twoDigitAddition' || mode === 'twoDigitSubtraction'){
-        const potentials=[answer+10, answer-10]; const unit = answer%10; let added=false;
-        for (const w of potentials){ if (w>=0 && w<=199 && w!==answer && w%10===unit && !set.has(w)){ set.add(w); added=true; break; } }
-        if (!added){
-          for (let i=0;i<5;i++){ let off=(getRandomInt(1,3)*10)*(Math.random()<0.5?1:-1);
-            const w=answer+off; if (w>=0 && w<=199 && w!==answer && w%10===unit && !set.has(w)){ set.add(w); break; } }
+    // 建立候選集合，確保唯一
+    const set = new Set([answer]);
+    if (mode === 'twoDigitAddition' || mode === 'twoDigitSubtraction'){
+      const potentials = [answer + 10, answer - 10];
+      const unit = answer % 10;
+      let added = false;
+      for (const w of potentials){
+        if (w >= 0 && w <= 199 && w !== answer && w % 10 === unit && !set.has(w)){
+          set.add(w); added = true; break;
         }
       }
-      while (set.size<4){
-        let range=5; if (answer>50) range=15; else if (answer<10) range=3;
-        let off=getRandomInt(-range,range); if (off===0) off=(Math.random()<0.5?1:-1)*getRandomInt(1,2);
-        const w=answer+off; if (w>=0 && w!==answer && !set.has(w)) set.add(w);
+      if (!added){
+        for (let i=0; i<5; i++){
+          let off = (getRandomInt(1,3) * 10) * (Math.random()<0.5 ? 1 : -1);
+          const w = answer + off;
+          if (w >= 0 && w <= 199 && w !== answer && w % 10 === unit && !set.has(w)){
+            set.add(w); break;
+          }
+        }
       }
-      const opts = Array.from(set).sort(()=>Math.random()-0.5);
-      return { num1,num2,operator,answer,options:opts };
+    }
+    while (set.size < 4){
+      let range = 5;
+      if (answer > 50) range = 15;
+      else if (answer < 10) range = 3;
+      let off = getRandomInt(-range, range);
+      if (off === 0) off = (Math.random()<0.5 ? 1 : -1) * getRandomInt(1,2);
+      const w = answer + off;
+      if (w >= 0 && w !== answer && !set.has(w)) set.add(w);
     }
 
-    function renderQuestion(){
-      byId('score').textContent = String(score);
-      byId('q-index').textContent = String(qIndex+1);
-      const qBox = byId('question-box'); const optsBox = byId('options');
-      const feedback = byId('feedback'); qBox.innerHTML='';
+    // ✅ 控制「正確答案位置」：使用平均分配的 nextCorrectPos()
+    const correctPos = nextCorrectPos();
+    const wrongs = shuffle(Array.from(set).filter(x => x !== answer));
 
-      if (selectedMode==='twoDigitAddition' || selectedMode==='twoDigitSubtraction'){
-        const wrap=document.createElement('div');
-        wrap.className='flex flex-col items-end text-yellow-800 font-extrabold text-5xl md:text-6xl mx-auto relative min-w-[150px]';
-        const top=document.createElement('div'); top.className='w-full text-right'; top.textContent=currentQuestion.num1;
-        const mid=document.createElement('div'); mid.className='flex items-baseline w-full justify-end relative';
-        const op=document.createElement('span'); op.className='absolute left-0 text-4xl md:text-5xl -mt-1'; op.textContent=currentQuestion.operator;
-        const bottom=document.createElement('span'); bottom.className='flex-grow text-right'; bottom.textContent=currentQuestion.num2;
-        const line=document.createElement('div'); line.className='w-full border-t-4 border-yellow-800 mt-2 pt-2 text-right'; line.textContent='?';
-        mid.appendChild(op); mid.appendChild(bottom); wrap.appendChild(top); wrap.appendChild(mid); wrap.appendChild(line); qBox.appendChild(wrap);
+    const opts = new Array(4);
+    opts[correctPos] = answer;
+
+    let wi = 0;
+    for (let i = 0; i < 4; i++){
+      if (i !== correctPos){
+        opts[i] = wrongs[wi++];
+      }
+    }
+
+    return { num1, num2, operator, answer, options: opts };
+  }
+
+  function renderQuestion(){
+    byId('score').textContent = String(score);
+    byId('q-index').textContent = String(qIndex+1);
+    const qBox = byId('question-box');
+    const optsBox = byId('options');
+    const feedback = byId('feedback');
+    qBox.innerHTML = '';
+
+    if (selectedMode==='twoDigitAddition' || selectedMode==='twoDigitSubtraction'){
+      const wrap=document.createElement('div');
+      wrap.className='flex flex-col items-end text-yellow-800 font-extrabold text-5xl md:text-6xl mx-auto relative min-w-[150px]';
+      const top=document.createElement('div'); top.className='w-full text-right'; top.textContent=currentQuestion.num1;
+      const mid=document.createElement('div'); mid.className='flex items-baseline w-full justify-end relative';
+      const op=document.createElement('span'); op.className='absolute left-0 text-4xl md:text-5xl -mt-1'; op.textContent=currentQuestion.operator;
+      const bottom=document.createElement('span'); bottom.className='flex-grow text-right'; bottom.textContent=currentQuestion.num2;
+      const line=document.createElement('div'); line.className='w-full border-t-4 border-yellow-800 mt-2 pt-2 text-right'; line.textContent='?';
+      mid.appendChild(op); mid.appendChild(bottom); wrap.appendChild(top); wrap.appendChild(mid); wrap.appendChild(line); qBox.appendChild(wrap);
+    } else {
+      const p=document.createElement('p'); p.className='text-5xl md:text-6xl font-extrabold text-yellow-800';
+      p.textContent=`${currentQuestion.num1} ${currentQuestion.operator} ${currentQuestion.num2} = ?`; qBox.appendChild(p);
+    }
+
+    optsBox.innerHTML = '';
+    currentQuestion.options.forEach(opt=>{
+      const btn=document.createElement('button');
+      btn.className='opt-btn p-4 rounded-2xl text-3xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md bg-indigo-300 text-indigo-900 hover:bg-indigo-400';
+      btn.textContent=opt; btn.dataset.value=opt; btn.disabled=false; optsBox.appendChild(btn);
+    });
+
+    feedback.textContent=''; feedback.className='text-2xl md:text-3xl font-bold mt-4';
+  }
+
+  function generateQuestion(){
+    const q = makeQuestion(selectedMode);
+    currentQuestion = { num1:q.num1, num2:q.num2, operator:q.operator, answer:q.answer };
+    options = q.options.slice();
+    currentQuestion.options = options;
+    selectedAnswer = null; isCorrectAnswer = null; renderQuestion();
+  }
+
+  byId('options').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('.opt-btn'); if(!btn) return;
+    if (selectedAnswer !== null) return;
+
+    selectedAnswer = Number(btn.dataset.value);
+    const correct = selectedAnswer === currentQuestion.answer;
+    isCorrectAnswer = correct;
+
+    document.querySelectorAll('.opt-btn').forEach(b=>{
+      const val = Number(b.dataset.value);
+      b.disabled = true;
+      b.classList.remove('bg-indigo-300','text-indigo-900','hover:bg-indigo-400','bg-green-500','bg-red-500','opacity-50','cursor-not-allowed','scale-110','scale-105','shadow-lg');
+      if (val === currentQuestion.answer){
+        b.classList.add('bg-green-500','text-white','scale-110','shadow-lg');
+      }else if (val === selectedAnswer && !correct){
+        b.classList.add('bg-red-500','text-white','scale-105','shadow-lg');
       }else{
-        const p=document.createElement('p'); p.className='text-5xl md:text-6xl font-extrabold text-yellow-800';
-        p.textContent=`${currentQuestion.num1} ${currentQuestion.operator} ${currentQuestion.num2} = ?`; qBox.appendChild(p);
+        b.classList.add('bg-indigo-300','text-indigo-900','opacity-50','cursor-not-allowed');
       }
-
-      optsBox.innerHTML=''; currentQuestion.options.forEach(opt=>{
-        const btn=document.createElement('button');
-        btn.className='opt-btn p-4 rounded-2xl text-3xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md bg-indigo-300 text-indigo-900 hover:bg-indigo-400';
-        btn.textContent=opt; btn.dataset.value=opt; btn.disabled=false; optsBox.appendChild(btn);
-      });
-
-      feedback.textContent=''; feedback.className='text-2xl md:text-3xl font-bold mt-4';
-    }
-
-    function generateQuestion(){
-      const q = makeQuestion(selectedMode);
-      currentQuestion = { num1:q.num1, num2:q.num2, operator:q.operator, answer:q.answer };
-      options = q.options.slice(); currentQuestion.options = options;
-      selectedAnswer = null; isCorrectAnswer = null; renderQuestion();
-    }
-
-    // 正確亮綠、錯誤亮紅，其他變淡
-    byId('options').addEventListener('click', async (e)=>{
-      const btn = e.target.closest('.opt-btn'); if(!btn) return;
-      if (selectedAnswer !== null) return;
-
-      selectedAnswer = Number(btn.dataset.value);
-      const correct = selectedAnswer === currentQuestion.answer;
-      isCorrectAnswer = correct;
-
-      document.querySelectorAll('.opt-btn').forEach(b=>{
-        const val = Number(b.dataset.value);
-        b.disabled = true;
-        b.classList.remove('bg-indigo-300','text-indigo-900','hover:bg-indigo-400','bg-green-500','bg-red-500','opacity-50','cursor-not-allowed','scale-110','scale-105','shadow-lg');
-        if (val === currentQuestion.answer){
-          b.classList.add('bg-green-500','text-white','scale-110','shadow-lg');
-        }else if (val === selectedAnswer && !correct){
-          b.classList.add('bg-red-500','text-white','scale-105','shadow-lg');
-        }else{
-          b.classList.add('bg-indigo-300','text-indigo-900','opacity-50','cursor-not-allowed');
-        }
-      });
-
-      const fb = byId('feedback');
-      if (correct){ score += 10; fb.textContent='✅ 答對了！'; await playCorrect(); }
-      else { fb.textContent=`❌ 答錯了，正確的是 ${currentQuestion.answer}`; await playIncorrect(); }
-
-      questionHistory.push({ question:`${currentQuestion.num1} ${currentQuestion.operator} ${currentQuestion.num2}`, correctAnswer:currentQuestion.answer, userAnswer:selectedAnswer, isCorrect:correct });
-
-      setTimeout(()=>{ if (qIndex<9){ qIndex+=1; generateQuestion(); } else { showResult(); } }, 1500);
     });
 
-    function startRound(){
-      score=0; qIndex=0; questionHistory=[]; selectedAnswer=null; isCorrectAnswer=null;
-      practiceSelect.classList.add('hidden'); practiceResult.classList.add('hidden'); practicePlay.classList.remove('hidden');
-      updatePracticeTitle(); generateQuestion();
-    }
+    const fb = byId('feedback');
+    if (correct){ score += 10; fb.textContent='✅ 答對了！'; await playCorrect(); }
+    else { fb.textContent=`❌ 答錯了，正確的是 ${currentQuestion.answer}`; await playIncorrect(); }
 
-    function showResult(){
-      practicePlay.classList.add('hidden'); practiceResult.classList.remove('hidden');
-      byId('final-score').textContent = `${score} 分`;
-      const rb = byId('review-body'); rb.innerHTML='';
-      questionHistory.forEach(item=>{
-        const tr=document.createElement('tr');
-        tr.className='border-b border-blue-50 last:border-b-0 hover:bg-blue-50 transition-colors duration-200';
-        tr.innerHTML = `
-          <td class="py-2 px-3 font-bold">${item.question}</td>
-          <td class="py-2 px-3 font-semibold ${item.isCorrect?'text-green-600':'text-red-500'}">${item.userAnswer}</td>
-          <td class="py-2 px-3 font-bold text-gray-700">${item.correctAnswer}</td>`;
-        rb.appendChild(tr);
-      });
-      const map={ addition18:'再玩一次18以內加法！', subtraction18:'再玩一次18以內減法！', twoDigitAddition:'再玩一次二位數加法！', twoDigitSubtraction:'再玩一次二位數減法！', mixed:'再玩一次綜合練習！' };
-      byId('btn-retry').textContent = map[selectedMode] || '再玩一次！';
-    }
+    questionHistory.push({ question:`${currentQuestion.num1} ${currentQuestion.operator} ${currentQuestion.num2}`, correctAnswer:currentQuestion.answer, userAnswer:selectedAnswer, isCorrect:correct });
 
-    byId('btn-reselect').addEventListener('click', ()=>{
-      selectedMode=null;
-      btnStart.disabled=true;
-      btnStart.classList.add('bg-gray-300','text-gray-600','cursor-not-allowed');
-      btnStart.classList.remove('bg-blue-500','text-white','hover:bg-blue-600');
-      document.querySelectorAll('.mode-btn').forEach(b=>{
-        b.classList.remove('bg-indigo-500','text-white','ring-4','ring-indigo-300','bg-rose-500','ring-rose-300','bg-amber-500','ring-amber-300','bg-cyan-500','ring-cyan-300','bg-teal-500','ring-teal-300');
-      });
-      practicePlay.classList.add('hidden'); practiceResult.classList.add('hidden'); practiceSelect.classList.remove('hidden');
+    setTimeout(()=>{
+      if (qIndex < 9){
+        qIndex += 1; generateQuestion();
+      } else {
+        showResult();
+      }
+    }, 1500);
+  });
+
+  function startRound(){
+    score = 0; qIndex = 0; questionHistory = [];
+    selectedAnswer = null; isCorrectAnswer = null;
+
+    // ✅ 每回合重置正解位置佇列
+    correctPosQueue = [];
+
+    practiceSelect.classList.add('hidden');
+    practiceResult.classList.add('hidden');
+    practicePlay.classList.remove('hidden');
+    updatePracticeTitle();
+    generateQuestion();
+  }
+
+  function showResult(){
+    practicePlay.classList.add('hidden');
+    practiceResult.classList.remove('hidden');
+    byId('final-score').textContent = `${score} 分`;
+
+    const rb = byId('review-body'); rb.innerHTML='';
+    questionHistory.forEach(item=>{
+      const tr=document.createElement('tr');
+      tr.className='border-b border-blue-50 last:border-b-0 hover:bg-blue-50 transition-colors duration-200';
+      tr.innerHTML = `
+        <td class="py-2 px-3 font-bold">${item.question}</td>
+        <td class="py-2 px-3 font-semibold ${item.isCorrect?'text-green-600':'text-red-500'}">${item.userAnswer}</td>
+        <td class="py-2 px-3 font-bold text-gray-700">${item.correctAnswer}</td>`;
+      rb.appendChild(tr);
     });
-    byId('btn-retry').addEventListener('click', ()=> startRound());
 
-    // Init
-    buildAdditionTable(10);
-    setNavStyles();
-  </script>
+    const map={
+      addition18:'再玩一次18以內加法！',
+      subtraction18:'再玩一次18以內減法！',
+      twoDigitAddition:'再玩一次二位數加法！',
+      twoDigitSubtraction:'再玩一次二位數減法！',
+      mixed:'再玩一次綜合練習！'
+    };
+    byId('btn-retry').textContent = map[selectedMode] || '再玩一次！';
+  }
+
+  byId('btn-reselect').addEventListener('click', ()=>{
+    selectedMode = null;
+    btnStart.disabled = true;
+    btnStart.classList.add('bg-gray-300','text-gray-600','cursor-not-allowed');
+    btnStart.classList.remove('bg-blue-500','text-white','hover:bg-blue-600');
+    document.querySelectorAll('.mode-btn').forEach(b=>{
+      b.classList.remove('bg-indigo-500','text-white','ring-4','ring-indigo-300','bg-rose-500','ring-rose-300','bg-amber-500','ring-amber-300','bg-cyan-500','ring-cyan-300','bg-teal-500','ring-teal-300');
+    });
+    practicePlay.classList.add('hidden');
+    practiceResult.classList.add('hidden');
+    practiceSelect.classList.remove('hidden');
+  });
+
+  byId('btn-retry').addEventListener('click', ()=> startRound());
+
+  // Init
+  buildAdditionTable(10);
+  setNavStyles();
+</script>
+
 </body>
 </html>
+
 
 
 
